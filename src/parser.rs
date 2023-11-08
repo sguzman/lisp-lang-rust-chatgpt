@@ -61,7 +61,8 @@ fn expect_keyword(chars: &mut std::iter::Peekable<Chars>, keyword: &str) -> Resu
 
 fn parse_list(chars: &mut std::iter::Peekable<Chars>) -> Result<Vec<Expr>, String> {
     let mut list = Vec::new();
-    while chars.peek() != Some(&')') {
+    skip_whitespace(chars);
+    while chars.peek().map_or(false, |&ch| ch != ')') {
         list.push(parse_expr(chars)?);
         skip_whitespace(chars);
     }
@@ -149,8 +150,13 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_add_no_arguments() {
-        assert!(parse("(add)").is_err());
+    fn test_parse_add_no_arguments_returns_identity() {
+        assert_eq!(parse("(add)"), Ok(Expr::Add(Vec::new())));
+    }
+
+    #[test]
+    fn test_parse_mult_no_arguments_returns_identity() {
+        assert_eq!(parse("(mult)"), Ok(Expr::Mult(Vec::new())));
     }
 
     #[test]
