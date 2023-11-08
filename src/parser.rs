@@ -93,3 +93,89 @@ fn skip_whitespace(chars: &mut std::iter::Peekable<Chars>) {
         chars.next();
     }
 }
+
+// ... existing parser code ...
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::iter::Peekable;
+    use std::str::Chars;
+
+    fn parse_helper(input: &str) -> Result<Expr, String> {
+        let mut chars = input.chars().peekable();
+        parse_expr(&mut chars)
+    }
+
+    #[test]
+    fn test_parse_number_simple() {
+        assert_eq!(parse_helper("42"), Ok(Expr::Int(42)));
+    }
+
+    #[test]
+    fn test_parse_number_with_whitespace() {
+        assert_eq!(parse_helper("  42 "), Ok(Expr::Int(42)));
+    }
+
+    #[test]
+    fn test_parse_number_negative() {
+        assert!(parse_helper("-42").is_err());
+    }
+
+    #[test]
+    fn test_parse_number_invalid() {
+        assert!(parse_helper("abc").is_err());
+    }
+
+    #[test]
+    fn test_parse_add_valid() {
+        assert_eq!(
+            parse("(add 1 2)"),
+            Ok(Expr::Add(vec![Expr::Int(1), Expr::Int(2)]))
+        );
+    }
+
+    #[test]
+    fn test_parse_add_extra_whitespace() {
+        assert_eq!(
+            parse("(add  1   2  )"),
+            Ok(Expr::Add(vec![Expr::Int(1), Expr::Int(2)]))
+        );
+    }
+
+    #[test]
+    fn test_parse_add_unbalanced_parentheses() {
+        assert!(parse("(add 1 2").is_err());
+    }
+
+    #[test]
+    fn test_parse_add_no_arguments() {
+        assert!(parse("(add)").is_err());
+    }
+
+    #[test]
+    fn test_parse_mult_valid() {
+        assert_eq!(
+            parse("(mult 3 4)"),
+            Ok(Expr::Mult(vec![Expr::Int(3), Expr::Int(4)]))
+        );
+    }
+
+    #[test]
+    fn test_parse_mult_nested_expressions() {
+        assert_eq!(
+            parse("(mult (add 1 2) 3)"),
+            Ok(Expr::Mult(vec![
+                Expr::Add(vec![Expr::Int(1), Expr::Int(2)]),
+                Expr::Int(3)
+            ]))
+        );
+    }
+
+    #[test]
+    fn test_parse_mult_invalid_keyword() {
+        assert!(parse("(multiply 3 4)").is_err());
+    }
+
+    // ... You can add more tests to cover other cases as needed ...
+}
