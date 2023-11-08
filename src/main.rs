@@ -76,13 +76,33 @@ fn skip_whitespace(chars: &mut std::iter::Peekable<Chars>) {
     }
 }
 
-// ... (rest of the code remains the same)
 fn eval(expr: &Expr) -> Result<i32, String> {
-    // This function will evaluate the expression and return its integer value
     match expr {
         Expr::Int(value) => Ok(*value),
-        Expr::Add(args) => args.iter().try_fold(0, |acc, arg| Ok(acc + eval(arg)?)),
-        Expr::Mult(args) => args.iter().try_fold(1, |acc, arg| Ok(acc * eval(arg)?)),
+        Expr::Add(args) => eval_add(args),
+        Expr::Mult(args) => eval_mult(args),
+    }
+}
+
+fn eval_add(args: &[Expr]) -> Result<i32, String> {
+    let mut iter = args.iter();
+    match iter.next() {
+        Some(first_expr) => {
+            let first_val = eval(first_expr)?;
+            iter.try_fold(first_val, |acc, arg| Ok(acc + eval(arg)?))
+        }
+        None => Ok(0), // Adding nothing results in 0
+    }
+}
+
+fn eval_mult(args: &[Expr]) -> Result<i32, String> {
+    let mut iter = args.iter();
+    match iter.next() {
+        Some(first_expr) => {
+            let first_val = eval(first_expr)?;
+            iter.try_fold(first_val, |acc, arg| Ok(acc * eval(arg)?))
+        }
+        None => Ok(1), // Multiplying nothing results in 1
     }
 }
 
